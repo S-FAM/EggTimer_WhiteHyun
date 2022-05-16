@@ -19,11 +19,14 @@ class BaseViewController: UIViewController {
   
   //MARK: - Constraint, Style, Action Configuration
   
+  /// layout을 설정합니다.
+  /// `addSubview(_:)`와 같은 코드를 이 함수에서 적용시킵니다.
   func setupLayout() {
     
   }
   
   
+  /// 세팅한 layout의 constraint를 설정합니다.
   func setupConstraints() {
     
   }
