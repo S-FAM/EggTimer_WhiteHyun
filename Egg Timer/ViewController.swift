@@ -113,7 +113,13 @@ final class ViewController: BaseViewController {
     $0.backgroundColor = Color.appPointColor.withAlphaComponent(0.5)
   }
   
-  //MARK: - UI Setting Part
+  //MARK: - Life Cycle Part
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+  }
   
   override func setupLayout() {
     super.setupLayout()
@@ -154,7 +160,7 @@ final class ViewController: BaseViewController {
       make.centerX.equalTo(view.center.x)
     }
     
-    //MARK: - Settings Button Constraints
+    // MARK: Settings Button Constraints
     
     settingsButton.snp.makeConstraints { make in
       make.top.equalTo(self.view.safeAreaLayoutGuide.snp.top)
@@ -217,6 +223,8 @@ final class ViewController: BaseViewController {
   }
   
   override func setupStyle() {
+    super.setupStyle()
+    
     navigationController?.isNavigationBarHidden = true
     view.backgroundColor = Color.appBackgroundColor
     
@@ -309,5 +317,11 @@ final class ViewController: BaseViewController {
     }
     
     setTimer(seconds: minute * 60.0)
+  }
+  
+  // MARK: - Action Part
+  
+  @objc func settingsButtonDidTaps(_ sender: UIButton) {
+    navigationController?.pushViewController(SettingsViewController(), animated: true)
   }
 }
