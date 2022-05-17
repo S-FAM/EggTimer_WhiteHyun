@@ -22,6 +22,8 @@ class SettingTableViewCell: UITableViewCell {
     setupLayout()
     setupConstraints()
     setupStyle()
+    
+    settingSwitch.addTarget(self, action: #selector(switchDidTaps(_:)), for: .touchUpInside)
   }
   
   required init?(coder: NSCoder) {
@@ -47,5 +49,11 @@ class SettingTableViewCell: UITableViewCell {
   func setupStyle() {
     backgroundColor = .clear
     selectionStyle = .none
+  }
+  
+  // MARK: - Function Part
+  
+  @objc func switchDidTaps(_ sender: UISwitch) {
+    UserDefaults.standard.set(sender.isOn, forKey: SettingValue.switchClockKey)
   }
 }
