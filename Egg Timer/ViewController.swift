@@ -118,6 +118,10 @@ final class ViewController: BaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    softButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+    mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+    hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+    
     settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
   }
   
@@ -227,10 +231,6 @@ final class ViewController: BaseViewController {
     
     navigationController?.isNavigationBarHidden = true
     view.backgroundColor = Color.appBackgroundColor
-    
-    softButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   
@@ -300,6 +300,8 @@ final class ViewController: BaseViewController {
     
   }
   
+  // MARK: - Action Part
+  
   @objc func eggButtonDidTaps(_ sender: UIButton) {
     
     guard let hardness = sender.currentTitle,
@@ -319,7 +321,6 @@ final class ViewController: BaseViewController {
     setTimer(seconds: minute * 60.0)
   }
   
-  // MARK: - Action Part
   
   @objc func settingsButtonDidTaps(_ sender: UIButton) {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
