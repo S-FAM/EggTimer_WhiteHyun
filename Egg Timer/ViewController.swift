@@ -10,15 +10,42 @@ import UIKit
 import SnapKit
 import Then
 
-class ViewController: BaseViewController {
+final class ViewController: BaseViewController {
   
   private enum Metrics {
     
     static let cornerRadius = 35.0
   }
   
+  private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
+  
+  var timer = Timer()
+  var secondPassed = 0.0
+  
+  
+  //MARK: - CALayer Part
+  
+  let shape = CAShapeLayer().then {
+    $0.strokeColor = Color.appPointColor.cgColor
+    $0.fillColor = UIColor.clear.cgColor
+    $0.strokeEnd = 0
+    $0.lineWidth = 15
+  }
+  
+  let trackShape = CAShapeLayer().then {
+    $0.strokeColor = UIColor.lightGray.cgColor
+    $0.fillColor = UIColor.white.cgColor
+    $0.lineWidth = 15
+  }
   
   //MARK: - UI Property Part
+  
+  let timeLabel = UILabel().then {
+    $0.textAlignment = .center
+    $0.text = "00:00"
+    $0.font = .systemFont(ofSize: 60, weight: .regular)
+    $0.sizeToFit()
+  }
   
   let titleLabel = UILabel().then {
     $0.font = UIFont.systemFont(ofSize: 51, weight: .bold)
@@ -110,6 +137,10 @@ class ViewController: BaseViewController {
     view.addSubview(subBackgroundView)
     view.addSubview(eggButtonStackView)
     
+    view.layer.addSublayer(trackShape)
+    view.layer.addSublayer(shape)
+    view.addSubview(timeLabel)
+    
   }
   
   override func setupConstraints() {
@@ -142,7 +173,7 @@ class ViewController: BaseViewController {
     eggButtonStackView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview().inset(20)
       make.bottom.equalToSuperview().inset(60)
-      make.height.equalTo(158)
+      make.height.equalTo(view.frame.height / 5.8)
     }
     
     // MARK: Egg ImageView Constraints
@@ -178,10 +209,105 @@ class ViewController: BaseViewController {
       make.leading.trailing.top.equalToSuperview()
       make.bottom.equalToSuperview().inset(5)
     }
+    
+    timeLabel.snp.makeConstraints { make in
+      make.centerX.equalToSuperview()
+      make.top.equalTo(subBackgroundView.snp.top).offset(167)
+    }
   }
   
   override func setupStyle() {
     navigationController?.isNavigationBarHidden = true
     view.backgroundColor = Color.appBackgroundColor
+    
+    softButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+    mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+    hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
+  }
+  
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    setupTimerClocks()
+  }
+  
+  //MARK: - Function Part
+  
+  func setupTimerClocks() {
+    let ringPath = UIBezierPath(
+      arcCenter: timeLabel.center,
+      radius: 150,
+      startAngle: -(.pi / 2),
+      endAngle: .pi * 2,
+      clockwise: true
+    )
+    shape.path = ringPath.cgPath
+    trackShape.path = ringPath.cgPath
+  }
+  
+  func setTimer(seconds time: Double) {
+    
+    // 값 초기화
+    timer.invalidate()
+    secondPassed = time
+    
+    // Animate
+    let animation = CABasicAnimation(keyPath: "strokeEnd")
+    
+    animation.toValue = 1
+    animation.duration = time
+    animation.isRemovedOnCompletion = false
+    animation.fillMode = .forwards
+    shape.add(animation, forKey: "animation")
+    
+    
+    
+    // `분:초`로 보여지도록 하기 위해 formatter를 사용
+    let dateFormatter = DateFormatter().then {
+      $0.dateFormat = "mm:ss"
+    }
+    
+    self.timeLabel.text = dateFormatter.string(
+      from: Date(timeIntervalSince1970: TimeInterval(self.secondPassed))
+    )
+    
+    
+    // 타이머 설정
+    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
+      if self.secondPassed > 0 {
+        
+        self.secondPassed -= 1
+        let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondPassed))
+        self.timeLabel.text = dateFormatter.string(from: leftTime)
+        
+      } else {
+        
+        $0.invalidate()
+        self.timeLabel.text = "Done!"
+        
+      }
+      
+    }
+    
+    
+  }
+  
+  @objc func eggButtonDidTaps(_ sender: UIButton) {
+    
+    guard let hardness = sender.currentTitle,
+          let minute = eggTimes[hardness] else {
+      
+      let alert = UIAlertController(
+        title: "오류!",
+        message: "버튼에 문제가 있네요.",
+        preferredStyle: .alert
+      )
+      
+      alert.addAction(UIAlertAction(title: "확인", style: .default))
+      present(alert, animated: true)
+      return
+    }
+    
+    setTimer(seconds: minute * 60.0)
   }
 }
