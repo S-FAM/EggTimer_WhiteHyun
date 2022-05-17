@@ -41,6 +41,8 @@ class SettingsViewController: BaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     tableView.dataSource = self
+    
+    backButton.addTarget(self, action: #selector(backButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   override func setupLayout() {
@@ -90,7 +92,15 @@ class SettingsViewController: BaseViewController {
     navigationController?.isNavigationBarHidden = true
     view.backgroundColor = Color.appBackgroundColor
   }
+  
+  // MARK: - Action Part
+  
+  @objc func backButtonDidTaps(_ sender: UIButton) {
+    navigationController?.popViewController(animated: true)
+  }
 }
+
+// MARK: - UITableViewDataSource
 
 extension SettingsViewController: UITableViewDataSource {
   
