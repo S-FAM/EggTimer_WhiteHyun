@@ -1,13 +1,13 @@
-//
-//  SettingsViewController.swift
-//  Egg Timer
-//
-//  Created by 홍승현 on 2022/05/17.
-//
-
 import UIKit
 
 class SettingsViewController: BaseViewController {
+  
+  typealias Setting = (labelText: String, tag: Int)
+  
+  
+  let settings: [Setting] = [
+    ("Digital/Analog", 0)
+  ]
   
   // MARK: - UI Property Part
   
@@ -40,6 +40,7 @@ class SettingsViewController: BaseViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    tableView.dataSource = self
   }
   
   override func setupLayout() {
@@ -88,6 +89,26 @@ class SettingsViewController: BaseViewController {
     super.setupStyle()
     navigationController?.isNavigationBarHidden = true
     view.backgroundColor = Color.appBackgroundColor
+  }
+}
+
+extension SettingsViewController: UITableViewDataSource {
+  
+  func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return settings.count
+  }
+  
+  func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    guard let cell = tableView.dequeueReusableCell(
+      withIdentifier: SettingTableViewCell.cellIdentifier,
+      for: indexPath
+    ) as? SettingTableViewCell else {
+      return UITableViewCell()
+    }
+    
+    cell.label.text = settings[indexPath.row].labelText
+    
+    return cell
   }
   
   
