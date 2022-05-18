@@ -15,12 +15,13 @@ final class ViewController: BaseViewController {
   private enum Metrics {
     
     static let cornerRadius = 35.0
+    
   }
   
   private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
   
-  var timer = Timer()
-  var secondPassed = 0.0
+  var timer = Timer() // 달걀 스케쥴 타이머
+  var secondLeft = 0.0 // 타이머 지난 시간
   var isClockAnalog: Bool?
   
   //MARK: - CALayer Part
@@ -123,6 +124,11 @@ final class ViewController: BaseViewController {
     hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     
     settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+  }
+  
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    setupTimerClocks()
   }
   
   override func setupLayout() {
@@ -233,12 +239,6 @@ final class ViewController: BaseViewController {
     view.backgroundColor = Color.appBackgroundColor
   }
   
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    setupTimerClocks()
-  }
-  
   //MARK: - Function Part
   
   func setupTimerClocks() {
@@ -301,6 +301,7 @@ final class ViewController: BaseViewController {
     // 불필요한 연산 없이 즉시 리턴
     if isClockAnalog != nil, isClockAnalog! == clockVersion { return }
     
+    // 시계 UI 업데이트
     if clockVersion {
       analogClock()
     } else {
@@ -315,7 +316,7 @@ final class ViewController: BaseViewController {
     
     // 값 초기화
     timer.invalidate()
-    secondPassed = time
+    secondLeft = time
     
     // Animate
     let animation = CABasicAnimation(keyPath: "strokeEnd")
@@ -334,16 +335,16 @@ final class ViewController: BaseViewController {
     }
     
     self.timeLabel.text = dateFormatter.string(
-      from: Date(timeIntervalSince1970: TimeInterval(self.secondPassed))
+      from: Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
     )
     
     
     // 타이머 설정
     timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-      if self.secondPassed > 0 {
+      if self.secondLeft > 0 {
         
-        self.secondPassed -= 1
-        let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondPassed))
+        self.secondLeft -= 1
+        let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
         self.timeLabel.text = dateFormatter.string(from: leftTime)
         
       } else {

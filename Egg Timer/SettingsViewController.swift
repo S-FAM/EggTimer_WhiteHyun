@@ -89,7 +89,7 @@ class SettingsViewController: BaseViewController {
   
   override func setupStyle() {
     super.setupStyle()
-    navigationController?.interactivePopGestureRecognizer?.delegate = nil
+    navigationController?.interactivePopGestureRecognizer?.delegate = nil // navigtaion bar 제거
     view.backgroundColor = Color.appBackgroundColor
   }
   

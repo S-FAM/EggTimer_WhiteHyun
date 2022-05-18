@@ -56,6 +56,8 @@ class SettingTableViewCell: UITableViewCell {
   // MARK: - Function Part
   
   @objc func switchDidTaps(_ sender: UISwitch) {
+    
+    // 설정 값을 UserDefaults에 저장
     UserDefaults.standard.set(sender.isOn, forKey: SettingValue.switchClockKey)
   }
 }

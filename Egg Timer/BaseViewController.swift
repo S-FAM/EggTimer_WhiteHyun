@@ -31,7 +31,7 @@ class BaseViewController: UIViewController {
     
   }
   
-  
+  /// view의 `style`을 설정합니다.
   func setupStyle() {
     view.backgroundColor = .white
   }
