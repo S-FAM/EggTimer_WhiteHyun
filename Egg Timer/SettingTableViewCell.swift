@@ -15,7 +15,9 @@ class SettingTableViewCell: UITableViewCell {
     $0.font = .systemFont(ofSize: 20, weight: .medium)
   }
   
-  let settingSwitch = UISwitch()
+  let settingSwitch = UISwitch().then {
+    $0.setOn(UserDefaults.standard.bool(forKey: SettingValue.switchClockKey), animated: false)
+  }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
