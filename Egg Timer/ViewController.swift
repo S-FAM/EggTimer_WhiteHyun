@@ -21,7 +21,7 @@ final class ViewController: BaseViewController {
   
   var timer = Timer()
   var secondPassed = 0.0
-  
+  var isClockAnalog: Bool?
   
   //MARK: - CALayer Part
   
@@ -242,15 +242,73 @@ final class ViewController: BaseViewController {
   //MARK: - Function Part
   
   func setupTimerClocks() {
-    let ringPath = UIBezierPath(
-      arcCenter: timeLabel.center,
-      radius: 150,
-      startAngle: -(.pi / 2),
-      endAngle: .pi * 2,
-      clockwise: true
-    )
-    shape.path = ringPath.cgPath
-    trackShape.path = ringPath.cgPath
+    
+    
+    // MARK: analog clock
+    
+    func analogClock() {
+      let circleRadius = 150.0
+      let circleHalfRadius = circleRadius * 0.5
+      let circleBounds = CGRect(
+        x: timeLabel.center.x - circleHalfRadius,
+        y: timeLabel.center.y - circleHalfRadius,
+        width: circleRadius,
+        height: circleRadius
+      )
+      
+      let path = UIBezierPath(roundedRect: circleBounds, cornerRadius: circleBounds.size.width * 0.5)
+      
+      shape.lineWidth = circleRadius
+      shape.path = path.cgPath
+      
+      if trackShape.superlayer != nil {
+        trackShape.removeFromSuperlayer()
+      }
+      timeLabel.isHidden = true
+    }
+    
+    // MARK: digital clock
+    
+    func digitalClock() {
+      
+      let ringPath = UIBezierPath(
+        arcCenter: timeLabel.center,
+        radius: 150,
+        startAngle: -(.pi / 2),
+        endAngle: .pi * 2,
+        clockwise: true
+      )
+      
+      shape.lineWidth = 15
+      
+      shape.path = ringPath.cgPath
+      trackShape.path = ringPath.cgPath
+      
+      if trackShape.superlayer == nil {
+        view.layer.addSublayer(trackShape)
+      }
+      shape.zPosition = 1
+      // trackShape에 의해 label이 보이지 않아 zPosition 값을 올림
+      timeLabel.layer.zPosition = 1
+      timeLabel.isHidden = false
+    }
+    
+    
+    let clockVersion = UserDefaults.standard.bool(forKey: SettingValue.switchClockKey)
+    
+    
+    // 처음 앱을 실행 한 게 아니면서 설정으로 변경한 시계UI와 지금의 UI가 같으면
+    // 불필요한 연산 없이 즉시 리턴
+    if isClockAnalog != nil, isClockAnalog! == clockVersion { return }
+    
+    if clockVersion {
+      analogClock()
+    } else {
+      digitalClock()
+    }
+    
+    isClockAnalog = clockVersion
+    
   }
   
   func setTimer(seconds time: Double) {
