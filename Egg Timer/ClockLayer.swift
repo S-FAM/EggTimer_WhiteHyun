@@ -15,6 +15,7 @@ class ClockLayer: CALayer {
   private enum Metrics {
     
     static let clockLineCount = 12
+    
     static let borderLength = 25.0
     
   }
@@ -48,6 +49,11 @@ class ClockLayer: CALayer {
     }
     return layerArray
   }()
+  
+  /// 시계 가운데 동그라미입니다.
+  let centerCircleLayer = CALayer().then {
+    $0.backgroundColor = UIColor.red.cgColor
+  }
   
   // MARK: - Custom Properties Part
   
@@ -83,6 +89,8 @@ class ClockLayer: CALayer {
     }
     
     addSublayer(shapeLayer)
+    
+    addSublayer(centerCircleLayer)
   }
   
   required init?(coder: NSCoder) {
@@ -145,7 +153,7 @@ class ClockLayer: CALayer {
     trackLayer.strokeColor = UIColor.white.cgColor
     
     
-    // 시계선 세팅이 되어있지 않다면
+    // 시계선 세팅이 되어있지 않다면 설정해줌
     if clockLineLayers[0].path == nil {
       setupLineStyle(center: center)
     }
@@ -154,6 +162,15 @@ class ClockLayer: CALayer {
     clockLineLayers.forEach { layer in
       layer.isHidden = false
     }
+    
+    // 시계 가운데 동그라미가 처음 생성되어지는 거라면 만들어줌
+    if centerCircleLayer.frame.size == CGSize(width: 0, height: 0) {
+      centerCircleLayer.frame = CGRect(x: center.x - 12, y: center.y - 12, width: 24, height: 24)
+      centerCircleLayer.cornerRadius = centerCircleLayer.bounds.width * 0.5
+    }
+    
+    // 시계 가운데 동그라미 보여주기
+    centerCircleLayer.isHidden = false
   }
   
   
@@ -184,6 +201,9 @@ class ClockLayer: CALayer {
     clockLineLayers.forEach { layer in
       layer.isHidden = true
     }
+    
+    // 시계 가운데 동그라미 숨기기
+    centerCircleLayer.isHidden = true
   }
   
   
