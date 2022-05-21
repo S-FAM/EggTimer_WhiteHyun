@@ -72,13 +72,16 @@ class ClockLayer: CALayer {
   let animation = CABasicAnimation(keyPath: "strokeEnd").then {
     $0.fromValue = 0 // 0부터
     $0.toValue = 1   // 1까지
-    $0.isRemovedOnCompletion = false // 애니메이션 코드 재사용
-    $0.fillMode = .forwards // 애니메이션 끝나고 다시 초기화되지 않게 함
+    $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
+    $0.fillMode = .forwards // 애니메이션이 끝난 결과를 그대로 유지
   }
   
   let lineAnimation = CABasicAnimation(keyPath: "transform.rotation").then {
     $0.fromValue = 0
     $0.toValue = 2 * CGFloat.pi
+    $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
+    $0.fillMode = .forwards // 애니메이션이 끝난 결과를 그대로 유지
+    
   }
   
   var diameter: Double
@@ -243,7 +246,7 @@ class ClockLayer: CALayer {
   /// 시계 애니메이션을 진행합니다.
   func animate(duration: CFTimeInterval) {
     animation.duration = duration
-    lineAnimation.duration = 10
+    lineAnimation.duration = duration
     shapeLayer.add(animation, forKey: "clockAnimation")
     handsLayer.add(lineAnimation, forKey: "test")
   }
