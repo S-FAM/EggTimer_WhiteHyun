@@ -16,6 +16,8 @@ final class ViewController: BaseViewController {
     
     static let cornerRadius = 35.0
     
+    static let thresholdHeight = 760.0
+    
   }
   
   private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
@@ -67,23 +69,23 @@ final class ViewController: BaseViewController {
     $0.contentMode = .scaleAspectFit
   }
   
-  let softButton = UIButton(type: .system).then {
+  lazy var softButton = UIButton(type: .system).then {
     $0.setTitle("Soft", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let mediumButton = UIButton(type: .system).then {
+  lazy var mediumButton = UIButton(type: .system).then {
     $0.setTitle("Medium", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let hardButton = UIButton(type: .system).then {
+  lazy var hardButton = UIButton(type: .system).then {
     $0.setTitle("Hard", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
