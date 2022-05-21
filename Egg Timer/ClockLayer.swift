@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-class ClockLayer: CALayer {
+final class ClockLayer: CALayer {
   
   private enum Metrics {
     
@@ -23,43 +23,54 @@ class ClockLayer: CALayer {
   // MARK: - CA Properties Part
   
   /// 타이머 animation ui
-  let shapeLayer = CAShapeLayer().then {
+  private let shapeLayer = CAShapeLayer().then {
     $0.strokeColor = Color.appPointColor.cgColor
     $0.fillColor = UIColor.clear.cgColor
     $0.strokeEnd = 0
   }
   
   /// 타이머 뒷 배경, animation 없는 decoration layer입니다.
-  let trackLayer = CAShapeLayer().then {
+  private let trackLayer = CAShapeLayer().then {
     $0.strokeColor = UIColor.lightGray.cgColor
     $0.fillColor = UIColor.white.cgColor
   }
   
   /// 아날로그 시계선에 해당합니다.
-  let clockLineLayers: [CAShapeLayer] = {
+  private let clockLineLayers: [CAShapeLayer] = {
     var layerArray = [CAShapeLayer]()
     
     // 정해진 선의 개수만큼 처리
     for i in 0..<Metrics.clockLineCount {
+      
       let lineLayer = CAShapeLayer()
       lineLayer.fillColor = UIColor.black.cgColor
       lineLayer.strokeColor = UIColor.black.cgColor
-      lineLayer.lineWidth = 5
+      lineLayer.lineWidth = 2
+      
+      // line을 dash로 변경 (호에 붙어있지 않는 느낌을 주기 위함)
+      lineLayer.lineDashPattern = [10]
+      lineLayer.lineDashPhase = 10
+      
       layerArray.append(lineLayer)
     }
+    
     return layerArray
   }()
   
   /// 시계 가운데 동그라미입니다.
-  let centerCircleLayer = CALayer().then {
+  private let centerCircleLayer = CALayer().then {
     $0.backgroundColor = UIColor.red.cgColor
+    $0.frame = CGRect(x: -12, y: -12, width: 24, height: 24)
+    $0.cornerRadius = $0.bounds.width * 0.5
   }
   
   /// 타이머 시계침입니다.
-  let handsLayer = CAShapeLayer().then {
+  private let handsLayer = CAShapeLayer().then {
     $0.lineWidth = 3
     $0.fillColor = UIColor.red.cgColor
     $0.strokeColor = UIColor.red.cgColor
+    
+    // 그림자 세팅
     $0.shadowColor = UIColor.clear.withAlphaComponent(0.5).cgColor
     $0.shadowOpacity = 1
     $0.shadowRadius = 3
@@ -69,14 +80,14 @@ class ClockLayer: CALayer {
   
   // MARK: - Custom Properties Part
   
-  let animation = CABasicAnimation(keyPath: "strokeEnd").then {
+  private let animation = CABasicAnimation(keyPath: "strokeEnd").then {
     $0.fromValue = 0 // 0부터
     $0.toValue = 1   // 1까지
     $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
     $0.fillMode = .forwards // 애니메이션이 끝난 결과를 그대로 유지
   }
   
-  let lineAnimation = CABasicAnimation(keyPath: "transform.rotation").then {
+  private let lineAnimation = CABasicAnimation(keyPath: "transform.rotation").then {
     $0.fromValue = 0
     $0.toValue = 2 * CGFloat.pi
     $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
@@ -84,8 +95,7 @@ class ClockLayer: CALayer {
     
   }
   
-  var diameter: Double
-  var lineWidth: CGFloat
+  private let diameter: Double
   
   // MARK: - Initialize Part
   
@@ -93,15 +103,24 @@ class ClockLayer: CALayer {
   ///
   /// - Parameters:
   ///   - diameter: 원의 지름
-  ///   - lineWidth: 선의 너비
-  init(diameter: Double, lineWidth: CGFloat) {
+  init(diameter: Double) {
     self.diameter = diameter
-    self.lineWidth = lineWidth
     super.init()
-    
-    shapeLayer.lineWidth = lineWidth
-    trackLayer.lineWidth = lineWidth
-    
+    setupLayouts()
+    setupStyles()
+  }
+  
+  override init(layer: Any) {
+    self.diameter = 0
+    super.init(layer: layer)
+  }
+  
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+  
+  /// sublayer를 세팅합니다.
+  private func setupLayouts() {
     addSublayer(trackLayer)
     
     clockLineLayers.forEach { layer in
@@ -114,12 +133,9 @@ class ClockLayer: CALayer {
     addSublayer(centerCircleLayer)
   }
   
-  required init?(coder: NSCoder) {
-    fatalError("init(coder:) has not been implemented")
-  }
-  
-  
-  func setupLineStyle(center: CGPoint) {
+  private func setupStyles() {
+    
+    // MARK: 시계선
     
     // 각도 (radian)
     var degree: CGFloat = 0
@@ -128,35 +144,45 @@ class ClockLayer: CALayer {
       
       let path = UIBezierPath()
       
-      let startX = cos(degree) * 1 * (diameter + Metrics.borderLength) + center.x
-      let startY = sin(degree) * 1 * (diameter + Metrics.borderLength) + center.y
+      let startX = cos(degree) * 1 * (diameter + Metrics.borderLength)
+      let startY = sin(degree) * 1 * (diameter + Metrics.borderLength)
       
-      let endX = cos(degree) * 1 * (diameter) + center.x
-      let endY = sin(degree) * 1 * (diameter) + center.y
+      let endX = cos(degree) * 1 * (diameter)
+      let endY = sin(degree) * 1 * (diameter)
       
       // 선 그리기
       path.move(to: CGPoint(x: startX, y: startY))
       path.addLine(to: CGPoint(x: endX, y: endY))
       path.close()
       
-      // line을 dash로 변경
       layer.path = path.cgPath
-      layer.lineDashPattern = [10]
-      layer.lineDashPhase = 10
-      
-      layer.lineWidth = 2
       
       // 2π ÷ 시계선 개수
       degree += 2 * .pi / CGFloat(clockLineLayers.count)
     }
+    
+    // MARK: 시계침
+    
+    let linePath = UIBezierPath()
+    linePath.move(to: CGPoint(x: 0, y: 0))
+    linePath.addLine(to: CGPoint(x: 0, y: -diameter)) // 12시를 바라보게 세팅
+    handsLayer.path = linePath.cgPath
+    
+  }
+  
+  
+  /// 시계의 위치를 세팅합니다.
+  /// - Parameter center: 시계의 중심점
+  func configureClocks(_ center: CGPoint) {
+    frame = CGRect(x: center.x, y: center.y, width: 0, height: 0)
   }
   
   
   /// 아날로그 시계 UI를 보여줍니다.
-  func displayAnalogClock(center: CGPoint) {
+  func displayAnalogClock() {
     
     let path = UIBezierPath(
-      arcCenter: center,
+      arcCenter: CGPoint(x: 0, y: 0),
       radius: 0.5 * diameter,
       startAngle: -(.pi / 2),
       endAngle: .pi * 3 / 2,
@@ -174,44 +200,22 @@ class ClockLayer: CALayer {
     trackLayer.strokeColor = UIColor.white.cgColor
     
     
-    // 시계선 세팅이 되어있지 않다면 설정해줌
-    if clockLineLayers[0].path == nil {
-      setupLineStyle(center: center)
-    }
-    
     // 시계선이 보이도록 세팅
     clockLineLayers.forEach { layer in
       layer.isHidden = false
     }
     
-    // 시계 가운데 동그라미가 처음 생성되어지는 거라면 만들어줌
-    if centerCircleLayer.frame.size == CGSize(width: 0, height: 0) {
-      centerCircleLayer.frame = CGRect(x: center.x - 12, y: center.y - 12, width: 24, height: 24)
-      centerCircleLayer.cornerRadius = centerCircleLayer.bounds.width * 0.5
-    }
-    
     // 시계 가운데 동그라미 보여주기
     centerCircleLayer.isHidden = false
-    
-    
-    // 시계침 세팅
-    if handsLayer.path == nil {
-      let linePath = UIBezierPath()
-      linePath.move(to: CGPoint(x: 0, y: 0))
-      linePath.addLine(to: CGPoint(x: 0, y: -diameter))
-      handsLayer.frame = CGRect(x: center.x, y: center.y, width: 0, height: 0)
-      handsLayer.path = linePath.cgPath
-    }
-    
     handsLayer.isHidden = false
   }
   
   
   /// 디지털 시계 UI를 보여줍니다.
-  func displayDigitalClock(center: CGPoint) {
+  func displayDigitalClock() {
     
     let path = UIBezierPath(
-      arcCenter: center,
+      arcCenter: CGPoint(x: 0, y: 0),
       radius: diameter,
       startAngle: -(.pi / 2),
       endAngle: .pi * 3 / 2,
@@ -223,22 +227,19 @@ class ClockLayer: CALayer {
     trackLayer.path = path.cgPath
     
     
-    
-    trackLayer.lineWidth = lineWidth
-    shapeLayer.lineWidth = lineWidth
-    
+    trackLayer.lineWidth = 15
+    shapeLayer.lineWidth = 15
     
     trackLayer.strokeColor = UIColor.lightGray.cgColor
+    
     
     // 시계선이 보이지 않도록 세팅
     clockLineLayers.forEach { layer in
       layer.isHidden = true
     }
     
-    // 시계 가운데 동그라미 숨기기
+    // 시계 가운데 동그라미, 시계침 숨기기
     centerCircleLayer.isHidden = true
-    
-    // 시계침 없애기
     handsLayer.isHidden = true
   }
   
@@ -248,6 +249,6 @@ class ClockLayer: CALayer {
     animation.duration = duration
     lineAnimation.duration = duration
     shapeLayer.add(animation, forKey: "clockAnimation")
-    handsLayer.add(lineAnimation, forKey: "test")
+    handsLayer.add(lineAnimation, forKey: "moveHands")
   }
 }

@@ -26,7 +26,7 @@ final class ViewController: BaseViewController {
   
   //MARK: - UI Property Part
   
-  let clockLayer = ClockLayer(diameter: 150, lineWidth: 15)
+  let clockLayer = ClockLayer(diameter: 150)
   
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
@@ -115,6 +115,7 @@ final class ViewController: BaseViewController {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    clockLayer.configureClocks(timeLabel.center)
     setupTimerClocks()
   }
   
@@ -238,10 +239,10 @@ final class ViewController: BaseViewController {
     
     // 시계 UI 업데이트
     if clockVersion {
-      clockLayer.displayAnalogClock(center: timeLabel.center)
+      clockLayer.displayAnalogClock()
       timeLabel.isHidden = true
     } else {
-      clockLayer.displayDigitalClock(center: timeLabel.center)
+      clockLayer.displayDigitalClock()
       timeLabel.isHidden = false
     }
     
