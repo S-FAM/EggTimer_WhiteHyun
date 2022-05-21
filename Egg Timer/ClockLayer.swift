@@ -26,12 +26,10 @@ final class ClockLayer: CALayer {
   private let shapeLayer = CAShapeLayer().then {
     $0.strokeColor = Color.appPointColor.cgColor
     $0.fillColor = UIColor.clear.cgColor
-    $0.strokeEnd = 0
   }
   
   /// 타이머 뒷 배경, animation 없는 decoration layer입니다.
   private let trackLayer = CAShapeLayer().then {
-    $0.strokeColor = UIColor.lightGray.cgColor
     $0.fillColor = UIColor.white.cgColor
   }
   
@@ -80,7 +78,7 @@ final class ClockLayer: CALayer {
   
   // MARK: - Custom Properties Part
   
-  private let animation = CABasicAnimation(keyPath: "strokeEnd").then {
+  private let animation = CABasicAnimation(keyPath: "strokeStart").then {
     $0.fromValue = 0 // 0부터
     $0.toValue = 1   // 1까지
     $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
