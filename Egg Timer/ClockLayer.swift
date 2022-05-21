@@ -55,6 +55,18 @@ class ClockLayer: CALayer {
     $0.backgroundColor = UIColor.red.cgColor
   }
   
+  /// 타이머 시계침입니다.
+  let handsLayer = CAShapeLayer().then {
+    $0.lineWidth = 3
+    $0.fillColor = UIColor.red.cgColor
+    $0.strokeColor = UIColor.red.cgColor
+    $0.shadowColor = UIColor.clear.withAlphaComponent(0.5).cgColor
+    $0.shadowOpacity = 1
+    $0.shadowRadius = 3
+    $0.shadowOffset = CGSize(width: 1, height: 0)
+  }
+  
+  
   // MARK: - Custom Properties Part
   
   let animation = CABasicAnimation(keyPath: "strokeEnd").then {
@@ -62,6 +74,11 @@ class ClockLayer: CALayer {
     $0.toValue = 1   // 1까지
     $0.isRemovedOnCompletion = false // 애니메이션 코드 재사용
     $0.fillMode = .forwards // 애니메이션 끝나고 다시 초기화되지 않게 함
+  }
+  
+  let lineAnimation = CABasicAnimation(keyPath: "transform.rotation").then {
+    $0.fromValue = 0
+    $0.toValue = 2 * CGFloat.pi
   }
   
   var diameter: Double
@@ -90,6 +107,7 @@ class ClockLayer: CALayer {
     
     addSublayer(shapeLayer)
     
+    addSublayer(handsLayer)
     addSublayer(centerCircleLayer)
   }
   
@@ -171,6 +189,18 @@ class ClockLayer: CALayer {
     
     // 시계 가운데 동그라미 보여주기
     centerCircleLayer.isHidden = false
+    
+    
+    // 시계침 세팅
+    if handsLayer.path == nil {
+      let linePath = UIBezierPath()
+      linePath.move(to: CGPoint(x: 0, y: 0))
+      linePath.addLine(to: CGPoint(x: 0, y: -diameter))
+      handsLayer.frame = CGRect(x: center.x, y: center.y, width: 0, height: 0)
+      handsLayer.path = linePath.cgPath
+    }
+    
+    handsLayer.isHidden = false
   }
   
   
@@ -204,12 +234,17 @@ class ClockLayer: CALayer {
     
     // 시계 가운데 동그라미 숨기기
     centerCircleLayer.isHidden = true
+    
+    // 시계침 없애기
+    handsLayer.isHidden = true
   }
   
   
   /// 시계 애니메이션을 진행합니다.
   func animate(duration: CFTimeInterval) {
     animation.duration = duration
+    lineAnimation.duration = 10
     shapeLayer.add(animation, forKey: "clockAnimation")
+    handsLayer.add(lineAnimation, forKey: "test")
   }
 }
