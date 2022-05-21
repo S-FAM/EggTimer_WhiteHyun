@@ -16,6 +16,8 @@ final class ViewController: BaseViewController {
     
     static let cornerRadius = 35.0
     
+    static let thresholdHeight = 760.0
+    
   }
   
   private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
@@ -26,7 +28,7 @@ final class ViewController: BaseViewController {
   
   //MARK: - UI Property Part
   
-  let clockLayer = ClockLayer(diameter: 150)
+  lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
   
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
@@ -67,23 +69,23 @@ final class ViewController: BaseViewController {
     $0.contentMode = .scaleAspectFit
   }
   
-  let softButton = UIButton(type: .system).then {
+  lazy var softButton = UIButton(type: .system).then {
     $0.setTitle("Soft", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let mediumButton = UIButton(type: .system).then {
+  lazy var mediumButton = UIButton(type: .system).then {
     $0.setTitle("Medium", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let hardButton = UIButton(type: .system).then {
+  lazy var hardButton = UIButton(type: .system).then {
     $0.setTitle("Hard", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
@@ -175,7 +177,7 @@ final class ViewController: BaseViewController {
     
     eggButtonStackView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview().inset(20)
-      make.bottom.equalToSuperview().inset(60)
+      make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(30)
       make.height.equalTo(view.frame.height / 5.8)
     }
     
@@ -215,7 +217,7 @@ final class ViewController: BaseViewController {
     
     timeLabel.snp.makeConstraints { make in
       make.centerX.equalToSuperview()
-      make.top.equalTo(subBackgroundView.snp.top).offset(167)
+      make.top.equalTo(subBackgroundView.snp.top).offset(view.frame.height / 5.5)
     }
   }
   
