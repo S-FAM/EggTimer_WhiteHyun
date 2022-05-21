@@ -26,7 +26,7 @@ final class ViewController: BaseViewController {
   
   //MARK: - UI Property Part
   
-  let clockLayer = ClockLayer(diameter: 150)
+  lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
   
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
@@ -215,7 +215,7 @@ final class ViewController: BaseViewController {
     
     timeLabel.snp.makeConstraints { make in
       make.centerX.equalToSuperview()
-      make.top.equalTo(subBackgroundView.snp.top).offset(167)
+      make.top.equalTo(subBackgroundView.snp.top).offset(view.frame.height / 5.5)
     }
   }
   
