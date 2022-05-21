@@ -177,7 +177,7 @@ final class ViewController: BaseViewController {
     
     eggButtonStackView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview().inset(20)
-      make.bottom.equalToSuperview().inset(60)
+      make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(30)
       make.height.equalTo(view.frame.height / 5.8)
     }
     
