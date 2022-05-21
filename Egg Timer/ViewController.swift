@@ -16,6 +16,8 @@ final class ViewController: BaseViewController {
     
     static let cornerRadius = 35.0
     
+    static let thresholdHeight = 760.0
+    
   }
   
   private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
@@ -24,22 +26,9 @@ final class ViewController: BaseViewController {
   var secondLeft = 0.0 // 타이머 지난 시간
   var isClockAnalog: Bool?
   
-  //MARK: - CALayer Part
-  
-  let shape = CAShapeLayer().then {
-    $0.strokeColor = Color.appPointColor.cgColor
-    $0.fillColor = UIColor.clear.cgColor
-    $0.strokeEnd = 0
-    $0.lineWidth = 15
-  }
-  
-  let trackShape = CAShapeLayer().then {
-    $0.strokeColor = UIColor.lightGray.cgColor
-    $0.fillColor = UIColor.white.cgColor
-    $0.lineWidth = 15
-  }
-  
   //MARK: - UI Property Part
+  
+  lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
   
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
@@ -80,23 +69,23 @@ final class ViewController: BaseViewController {
     $0.contentMode = .scaleAspectFit
   }
   
-  let softButton = UIButton(type: .system).then {
+  lazy var softButton = UIButton(type: .system).then {
     $0.setTitle("Soft", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let mediumButton = UIButton(type: .system).then {
+  lazy var mediumButton = UIButton(type: .system).then {
     $0.setTitle("Medium", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
   
-  let hardButton = UIButton(type: .system).then {
+  lazy var hardButton = UIButton(type: .system).then {
     $0.setTitle("Hard", for: .normal)
-    $0.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .regular)
+    $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
   }
@@ -128,6 +117,7 @@ final class ViewController: BaseViewController {
   
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
+    clockLayer.configureClocks(timeLabel.center)
     setupTimerClocks()
   }
   
@@ -153,8 +143,7 @@ final class ViewController: BaseViewController {
     view.addSubview(subBackgroundView)
     view.addSubview(eggButtonStackView)
     
-    view.layer.addSublayer(trackShape)
-    view.layer.addSublayer(shape)
+    view.layer.addSublayer(clockLayer)
     view.addSubview(timeLabel)
     
   }
@@ -188,7 +177,7 @@ final class ViewController: BaseViewController {
     
     eggButtonStackView.snp.makeConstraints { make in
       make.leading.trailing.equalToSuperview().inset(20)
-      make.bottom.equalToSuperview().inset(60)
+      make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(30)
       make.height.equalTo(view.frame.height / 5.8)
     }
     
@@ -228,7 +217,7 @@ final class ViewController: BaseViewController {
     
     timeLabel.snp.makeConstraints { make in
       make.centerX.equalToSuperview()
-      make.top.equalTo(subBackgroundView.snp.top).offset(167)
+      make.top.equalTo(subBackgroundView.snp.top).offset(view.frame.height / 5.5)
     }
   }
   
@@ -243,57 +232,6 @@ final class ViewController: BaseViewController {
   
   func setupTimerClocks() {
     
-    
-    // MARK: analog clock
-    
-    func analogClock() {
-      let circleRadius = 150.0
-      let circleHalfRadius = circleRadius * 0.5
-      let circleBounds = CGRect(
-        x: timeLabel.center.x - circleHalfRadius,
-        y: timeLabel.center.y - circleHalfRadius,
-        width: circleRadius,
-        height: circleRadius
-      )
-      
-      let path = UIBezierPath(roundedRect: circleBounds, cornerRadius: circleBounds.size.width * 0.5)
-      
-      shape.lineWidth = circleRadius
-      shape.path = path.cgPath
-      
-      if trackShape.superlayer != nil {
-        trackShape.removeFromSuperlayer()
-      }
-      timeLabel.isHidden = true
-    }
-    
-    // MARK: digital clock
-    
-    func digitalClock() {
-      
-      let ringPath = UIBezierPath(
-        arcCenter: timeLabel.center,
-        radius: 150,
-        startAngle: -(.pi / 2),
-        endAngle: .pi * 2,
-        clockwise: true
-      )
-      
-      shape.lineWidth = 15
-      
-      shape.path = ringPath.cgPath
-      trackShape.path = ringPath.cgPath
-      
-      if trackShape.superlayer == nil {
-        view.layer.addSublayer(trackShape)
-      }
-      shape.zPosition = 1
-      // trackShape에 의해 label이 보이지 않아 zPosition 값을 올림
-      timeLabel.layer.zPosition = 1
-      timeLabel.isHidden = false
-    }
-    
-    
     let clockVersion = UserDefaults.standard.bool(forKey: SettingValue.switchClockKey)
     
     
@@ -303,9 +241,11 @@ final class ViewController: BaseViewController {
     
     // 시계 UI 업데이트
     if clockVersion {
-      analogClock()
+      clockLayer.displayAnalogClock()
+      timeLabel.isHidden = true
     } else {
-      digitalClock()
+      clockLayer.displayDigitalClock()
+      timeLabel.isHidden = false
     }
     
     isClockAnalog = clockVersion
@@ -318,15 +258,8 @@ final class ViewController: BaseViewController {
     timer.invalidate()
     secondLeft = time
     
-    // Animate
-    let animation = CABasicAnimation(keyPath: "strokeEnd")
-    
-    animation.toValue = 1
-    animation.duration = time
-    animation.isRemovedOnCompletion = false
-    animation.fillMode = .forwards
-    shape.add(animation, forKey: "animation")
-    
+    // 타이머 애니메이션 실행
+    clockLayer.animate(duration: time)
     
     
     // `분:초`로 보여지도록 하기 위해 formatter를 사용
