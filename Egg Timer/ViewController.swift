@@ -22,12 +22,16 @@ final class ViewController: BaseViewController {
   
   private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
   
-  var timer = Timer() // 달걀 스케쥴 타이머
-  var secondLeft = 0.0 // 타이머 지난 시간
-  var isClockAnalog: Bool?
+  /// 달걀 스케쥴 타이머
+  var timer = Timer()
+  
+  /// 타이머 남은 시간
+  var secondLeft = 0.0
+  var isAnalogClock: Bool?
   
   //MARK: - UI Property Part
   
+  /// 시계 UI를 형성하는 layer
   lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
   
   let timeLabel = UILabel().then {
@@ -116,7 +120,7 @@ final class ViewController: BaseViewController {
     
     NotificationCenter.default.addObserver(
       self,
-      selector: #selector(setTimeLabel(_:)),
+      selector: #selector(updateTimeLabel(_:)),
       name: .updateTimerValue,
       object: nil
     )
@@ -125,7 +129,7 @@ final class ViewController: BaseViewController {
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     clockLayer.configureClocks(timeLabel.center)
-    setupTimerClocks()
+    setupClock()
   }
   
   override func setupLayout() {
@@ -237,14 +241,14 @@ final class ViewController: BaseViewController {
   
   //MARK: - Function Part
   
-  func setupTimerClocks() {
+  func setupClock() {
     
     let clockVersion = UserDefaults.standard.bool(forKey: UserDefaults.Keys.switchClock)
     
     
     // 처음 앱을 실행 한 게 아니면서 설정으로 변경한 시계UI와 지금의 UI가 같으면
     // 불필요한 연산 없이 즉시 리턴
-    if isClockAnalog != nil, isClockAnalog! == clockVersion { return }
+    if isAnalogClock != nil, isAnalogClock! == clockVersion { return }
     
     // 시계 UI 업데이트
     if clockVersion {
@@ -255,7 +259,7 @@ final class ViewController: BaseViewController {
       timeLabel.isHidden = false
     }
     
-    isClockAnalog = clockVersion
+    isAnalogClock = clockVersion
     
   }
   
@@ -322,7 +326,7 @@ final class ViewController: BaseViewController {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
   }
   
-  @objc func setTimeLabel(_ notification: Notification) {
+  @objc func updateTimeLabel(_ notification: Notification) {
     guard let timeGoesBy = notification.userInfo?["interval"] as? Double,
           secondLeft > 0
     else {
