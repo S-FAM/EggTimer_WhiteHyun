@@ -120,7 +120,7 @@ final class ViewController: BaseViewController {
     
     NotificationCenter.default.addObserver(
       self,
-      selector: #selector(updateTimeLabel(_:)),
+      selector: #selector(willEnterForeground(_:)),
       name: .willEnterForeground,
       object: nil
     )
@@ -326,7 +326,8 @@ final class ViewController: BaseViewController {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
   }
   
-  @objc func updateTimeLabel(_ notification: Notification) {
+  
+  @objc func willEnterForeground(_ notification: Notification) {
     guard let timeGoesBy = notification.userInfo?["interval"] as? Double,
           secondLeft > 0
     else {
