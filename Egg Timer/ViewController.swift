@@ -20,7 +20,7 @@ final class ViewController: BaseViewController {
     
   }
   
-  private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
+  private let eggTimes = ["Soft": 0.2, "Medium": 7.0, "Hard": 12.0]
   
   var timer = Timer() // 달걀 스케쥴 타이머
   var secondLeft = 0.0 // 타이머 지난 시간
@@ -113,6 +113,13 @@ final class ViewController: BaseViewController {
     hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     
     settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(setTimeLabel(_:)),
+      name: .updateTimerValue,
+      object: nil
+    )
   }
   
   override func viewDidAppear(_ animated: Bool) {
@@ -258,10 +265,6 @@ final class ViewController: BaseViewController {
     timer.invalidate()
     secondLeft = time
     
-    // 타이머 애니메이션 실행
-    clockLayer.animate(duration: time)
-    
-    
     // `분:초`로 보여지도록 하기 위해 formatter를 사용
     let dateFormatter = DateFormatter().then {
       $0.dateFormat = "mm:ss"
@@ -310,11 +313,22 @@ final class ViewController: BaseViewController {
       return
     }
     
-    setTimer(seconds: minute * 60.0)
+    let seconds = minute * 60.0
+    
+    setTimer(seconds: seconds)
+    
+    // 타이머 애니메이션 실행
+    clockLayer.animate(duration: seconds)
   }
   
   
   @objc func settingsButtonDidTaps(_ sender: UIButton) {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
+  }
+  
+  @objc func setTimeLabel(_ notification: Notification) {
+    guard let timeGoesBy = notification.userInfo?["interval"] as? Int else { return }
+    
+    setTimer(seconds: secondLeft - Double(timeGoesBy))
   }
 }
