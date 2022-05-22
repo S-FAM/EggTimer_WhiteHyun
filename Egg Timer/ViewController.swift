@@ -276,10 +276,10 @@ final class ViewController: BaseViewController {
     
     
     // 타이머 설정
-    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
+    timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) {
       if self.secondLeft > 0 {
         
-        self.secondLeft -= 1
+        self.secondLeft -= 0.01
         let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
         self.timeLabel.text = dateFormatter.string(from: leftTime)
         
