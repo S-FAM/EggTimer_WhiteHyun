@@ -11,7 +11,7 @@ import UserNotifications
 import SnapKit
 import Then
 
-final class ViewController: BaseViewController {
+final class TimerViewController: BaseViewController {
   
   private enum Metrics {
     
