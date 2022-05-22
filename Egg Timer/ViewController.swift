@@ -239,7 +239,7 @@ final class ViewController: BaseViewController {
   
   func setupTimerClocks() {
     
-    let clockVersion = UserDefaults.standard.bool(forKey: SettingValue.switchClockKey)
+    let clockVersion = UserDefaults.standard.bool(forKey: UserDefaults.Keys.switchClock)
     
     
     // 처음 앱을 실행 한 게 아니면서 설정으로 변경한 시계UI와 지금의 UI가 같으면

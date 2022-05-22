@@ -66,7 +66,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Called as the scene transitions from the background to the foreground.
     // Use this method to undo the changes made on entering the background.
     guard let didEnterBackgroundTime = UserDefaults.standard.object(
-      forKey: TimerTime.didEnterBackground
+      forKey: UserDefaults.Keys.didEnterBackgroundDate
     ) as? Date
     else {
       return
@@ -85,7 +85,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Called as the scene transitions from the foreground to the background.
     // Use this method to save data, release shared resources, and store enough scene-specific state information
     // to restore the scene back to its current state.
-    UserDefaults.standard.set(Date(), forKey: TimerTime.didEnterBackground)
+    UserDefaults.standard.set(Date(), forKey: UserDefaults.Keys.didEnterBackgroundDate)
     
   }
   
