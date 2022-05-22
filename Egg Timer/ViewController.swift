@@ -121,7 +121,7 @@ final class ViewController: BaseViewController {
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(updateTimeLabel(_:)),
-      name: .updateTimerValue,
+      name: .willEnterForeground,
       object: nil
     )
   }

@@ -74,7 +74,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let interval = Date().timeIntervalSince(didEnterBackgroundTime)
     
     NotificationCenter.default.post(
-      name: .updateTimerValue,
+      name: .willEnterForeground,
       object: nil,
       userInfo: ["interval": interval]
     )
