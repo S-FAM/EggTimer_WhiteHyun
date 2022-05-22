@@ -270,10 +270,6 @@ final class ViewController: BaseViewController {
       $0.dateFormat = "mm:ss"
     }
     
-    self.timeLabel.text = dateFormatter.string(
-      from: Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
-    )
-    
     
     // 타이머 설정
     timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) {
