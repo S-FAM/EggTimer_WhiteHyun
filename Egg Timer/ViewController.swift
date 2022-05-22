@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UserNotifications
 
 import SnapKit
 import Then
@@ -118,10 +119,20 @@ final class ViewController: BaseViewController {
     
     settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
     
+    
+    // MARK: Notification Observer
+    
     NotificationCenter.default.addObserver(
       self,
-      selector: #selector(updateTimeLabel(_:)),
-      name: .updateTimerValue,
+      selector: #selector(willEnterForeground(_:)),
+      name: .willEnterForeground,
+      object: nil
+    )
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(didEnterBackground(_:)),
+      name: .didEnterBackground,
       object: nil
     )
   }
@@ -326,12 +337,49 @@ final class ViewController: BaseViewController {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
   }
   
-  @objc func updateTimeLabel(_ notification: Notification) {
+  // MARK: - Observer Part
+  
+  @objc func willEnterForeground(_ notification: Notification) {
     guard let timeGoesBy = notification.userInfo?["interval"] as? Double,
           secondLeft > 0
     else {
       return
     }
     setTimer(seconds: secondLeft - timeGoesBy)
+    
+    UNUserNotificationCenter
+      .current()
+      .removePendingNotificationRequests(withIdentifiers: [UserNotificationID.timerDone])
+  }
+  
+  @objc func didEnterBackground(_ notification: Notification) {
+    
+    guard secondLeft > 0 else { return }
+    
+    
+    // 푸시알림 설정 유무를 가져옴
+    UNUserNotificationCenter.current().getNotificationSettings { [unowned self] settings in
+      
+      // 푸시 알림을 동의했다면
+      if settings.authorizationStatus == .authorized {
+        
+        // 1. 컨텐츠 정의
+        let content = UNMutableNotificationContent()
+        content.title = "알림"
+        content.subtitle = "끝났어요!"
+        content.body = "얼른 삶은 달걀을 꺼내보세요!!"
+        content.sound = .default
+        
+        // 2. 트리거 조건 정의
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: self.secondLeft, repeats: false)
+        
+        // 3. 요청 생성
+        let request = UNNotificationRequest(identifier: UserNotificationID.timerDone, content: content, trigger: trigger)
+        
+        // 4. NotificationCenter에 추가
+        UNUserNotificationCenter.current().add(request)
+        
+      }
+    }
   }
 }

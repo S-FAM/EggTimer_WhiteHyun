@@ -74,7 +74,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let interval = Date().timeIntervalSince(didEnterBackgroundTime)
     
     NotificationCenter.default.post(
-      name: .updateTimerValue,
+      name: .willEnterForeground,
       object: nil,
       userInfo: ["interval": interval]
     )
@@ -86,7 +86,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // Use this method to save data, release shared resources, and store enough scene-specific state information
     // to restore the scene back to its current state.
     UserDefaults.standard.set(Date(), forKey: UserDefaults.Keys.didEnterBackgroundDate)
-    
+    NotificationCenter.default.post(name: .didEnterBackground, object: nil)
   }
   
   
