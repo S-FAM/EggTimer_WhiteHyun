@@ -327,8 +327,7 @@ final class ViewController: BaseViewController {
   }
   
   @objc func setTimeLabel(_ notification: Notification) {
-    guard let timeGoesBy = notification.userInfo?["interval"] as? Int else { return }
-    
-    setTimer(seconds: secondLeft - Double(timeGoesBy))
+    guard let timeGoesBy = notification.userInfo?["interval"] as? Double else { return }
+    setTimer(seconds: secondLeft - round(timeGoesBy))
   }
 }
