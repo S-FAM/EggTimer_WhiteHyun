@@ -20,7 +20,7 @@ final class ViewController: BaseViewController {
     
   }
   
-  private let eggTimes = ["Soft": 0.2, "Medium": 7.0, "Hard": 12.0]
+  private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
   
   var timer = Timer() // 달걀 스케쥴 타이머
   var secondLeft = 0.0 // 타이머 지난 시간
@@ -332,6 +332,6 @@ final class ViewController: BaseViewController {
     else {
       return
     }
-    setTimer(seconds: secondLeft - round(timeGoesBy))
+    setTimer(seconds: secondLeft - timeGoesBy)
   }
 }
