@@ -30,6 +30,33 @@ final class TimerViewController: BaseViewController {
   /// 시계 UI를 형성하는 layer
   lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
   
+  // MARK: UIView
+  
+  let subBackgroundView = UIView().then {
+    $0.backgroundColor = Color.appSubBackgroundColor
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMinYCorner]
+  }
+  
+  let softViewContainer = UIView(frame: .zero)
+  
+  let mediumViewContainer = UIView(frame: .zero)
+  
+  let hardViewContainer = UIView(frame: .zero)
+  
+  // MARK: UIStackView
+  
+  let eggButtonStackView = UIStackView().then {
+    $0.axis = .horizontal
+    $0.alignment = .fill
+    $0.distribution = .fillEqually
+    $0.spacing = 25
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.backgroundColor = Color.appPointColor.withAlphaComponent(0.5)
+  }
+  
+  // MARK: UILabel
+  
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
     $0.text = "00:00"
@@ -43,16 +70,7 @@ final class TimerViewController: BaseViewController {
     $0.sizeToFit()
   }
   
-  let settingsButton = UIButton(type: .system).then {
-    $0.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
-    $0.tintColor = Color.appPointColor
-  }
-  
-  let subBackgroundView = UIView().then {
-    $0.backgroundColor = Color.appSubBackgroundColor
-    $0.layer.cornerRadius = Metrics.cornerRadius
-    $0.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMinYCorner]
-  }
+  // MARK: UIImageView
   
   let softEggImageView = UIImageView().then {
     $0.image = UIImage(named: "soft")
@@ -69,11 +87,20 @@ final class TimerViewController: BaseViewController {
     $0.contentMode = .scaleAspectFit
   }
   
+  // MARK: UIButton
+  
+  lazy var settingsButton = UIButton(type: .system).then {
+    $0.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
+    $0.tintColor = Color.appPointColor
+    $0.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+  }
+  
   lazy var softButton = UIButton(type: .system).then {
     $0.setTitle("Soft", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   lazy var mediumButton = UIButton(type: .system).then {
@@ -81,6 +108,7 @@ final class TimerViewController: BaseViewController {
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   lazy var hardButton = UIButton(type: .system).then {
@@ -88,19 +116,7 @@ final class TimerViewController: BaseViewController {
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
-  }
-  
-  let softViewContainer = UIView(frame: .zero)
-  let mediumViewContainer = UIView(frame: .zero)
-  let hardViewContainer = UIView(frame: .zero)
-  
-  let eggButtonStackView = UIStackView().then {
-    $0.axis = .horizontal
-    $0.alignment = .fill
-    $0.distribution = .fillEqually
-    $0.spacing = 25
-    $0.layer.cornerRadius = Metrics.cornerRadius
-    $0.backgroundColor = Color.appPointColor.withAlphaComponent(0.5)
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   //MARK: - Life Cycle Part
@@ -108,9 +124,6 @@ final class TimerViewController: BaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    softButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     
     // delegate 설정
     eggTimeManager.delegate = self
