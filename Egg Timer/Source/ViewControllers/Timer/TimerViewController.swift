@@ -21,13 +21,8 @@ final class TimerViewController: BaseViewController {
     
   }
   
-  private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
+  private var eggTimeManager = EggTimeManager()
   
-  /// 달걀 스케쥴 타이머
-  var timer = Timer()
-  
-  /// 타이머 남은 시간
-  var secondLeft = 0.0
   var isAnalogClock: Bool?
   
   //MARK: - UI Property Part
@@ -117,7 +112,8 @@ final class TimerViewController: BaseViewController {
     mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     
-    settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+    // delegate 설정
+    eggTimeManager.delegate = self
     
     
     // MARK: Notification Observer
@@ -274,44 +270,12 @@ final class TimerViewController: BaseViewController {
     
   }
   
-  func setTimer(seconds time: Double) {
-    
-    // 값 초기화
-    timer.invalidate()
-    secondLeft = time
-    
-    // `분:초`로 보여지도록 하기 위해 formatter를 사용
-    let dateFormatter = DateFormatter().then {
-      $0.dateFormat = "mm:ss"
-    }
-    
-    
-    // 타이머 설정
-    timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) {
-      if self.secondLeft > 0 {
-        
-        self.secondLeft -= 0.01
-        let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
-        self.timeLabel.text = dateFormatter.string(from: leftTime)
-        
-      } else {
-        
-        $0.invalidate()
-        self.timeLabel.text = "Done!"
-        
-      }
-      
-    }
-    
-    
-  }
-  
   // MARK: - Action Part
   
   @objc func eggButtonDidTaps(_ sender: UIButton) {
     
-    guard let hardness = sender.currentTitle,
-          let minute = eggTimes[hardness] else {
+    guard let hardness = sender.currentTitle
+    else {
       
       let alert = UIAlertController(
         title: "오류!",
@@ -324,12 +288,14 @@ final class TimerViewController: BaseViewController {
       return
     }
     
-    let seconds = minute * 60.0
+    // 타이머 설정
+    eggTimeManager.setTimer(to: hardness)
     
-    setTimer(seconds: seconds)
+    // 타이머 시작
+    eggTimeManager.startTimer()
     
-    // 타이머 애니메이션 실행
-    clockLayer.animate(duration: seconds)
+    // 타이머 시간만큼 애니메이션 실행
+    clockLayer.animate(duration: eggTimeManager.timeLeft)
   }
   
   
@@ -341,20 +307,22 @@ final class TimerViewController: BaseViewController {
   
   @objc func willEnterForeground(_ notification: Notification) {
     guard let timeGoesBy = notification.userInfo?["interval"] as? Double,
-          secondLeft > 0
+          eggTimeManager.timeLeft > 0
     else {
       return
     }
-    setTimer(seconds: secondLeft - timeGoesBy)
+    
+    eggTimeManager.setTimer(to: eggTimeManager.timeLeft - timeGoesBy)
     
     UNUserNotificationCenter
       .current()
       .removePendingNotificationRequests(withIdentifiers: [UserNotificationID.timerDone])
   }
   
+  
   @objc func didEnterBackground(_ notification: Notification) {
     
-    guard secondLeft > 0 else { return }
+    guard eggTimeManager.timeLeft > 0 else { return }
     
     
     // 푸시알림 설정 유무를 가져옴
@@ -371,7 +339,7 @@ final class TimerViewController: BaseViewController {
         content.sound = .default
         
         // 2. 트리거 조건 정의
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: self.secondLeft, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: eggTimeManager.timeLeft, repeats: false)
         
         // 3. 요청 생성
         let request = UNNotificationRequest(identifier: UserNotificationID.timerDone, content: content, trigger: trigger)
@@ -381,5 +349,19 @@ final class TimerViewController: BaseViewController {
         
       }
     }
+  }
+}
+
+// MARK: - EggTimeDelegate
+
+extension TimerViewController: EggTimeDelegate {
+  
+  func timerDidChangesPerTick(_ manager: EggTimeManager, timeString: String) {
+    timeLabel.text = timeString
+  }
+  
+  
+  func timerDone(_ manager: EggTimeManager) {
+    timeLabel.text = "Done!"
   }
 }
