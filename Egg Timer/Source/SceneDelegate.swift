@@ -78,7 +78,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       object: nil,
       userInfo: ["interval": interval]
     )
-    
   }
   
   func sceneDidEnterBackground(_ scene: UIScene) {

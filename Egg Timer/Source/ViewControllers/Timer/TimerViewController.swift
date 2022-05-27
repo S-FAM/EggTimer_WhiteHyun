@@ -128,6 +128,15 @@ final class TimerViewController: BaseViewController {
     // delegate 설정
     eggTimeManager.delegate = self
     
+    // 작업한 레이아웃을 바로 적용
+    view.layoutIfNeeded()
+    
+    clockLayer.frame = CGRect(
+      x: timeLabel.center.x,
+      y: timeLabel.center.y,
+      width: 0,
+      height: 0
+    )
     
     // MARK: Notification Observer
     
@@ -145,10 +154,8 @@ final class TimerViewController: BaseViewController {
       object: nil
     )
   }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    clockLayer.configureClocks(timeLabel.center)
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
     setupClock()
   }
   
@@ -166,7 +173,6 @@ final class TimerViewController: BaseViewController {
     
     [softViewContainer, mediumViewContainer, hardViewContainer].forEach {
       eggButtonStackView.addArrangedSubview($0)
-      
     }
     
     view.addSubview(titleLabel)
