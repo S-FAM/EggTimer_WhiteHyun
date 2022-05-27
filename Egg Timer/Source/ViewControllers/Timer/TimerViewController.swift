@@ -180,8 +180,8 @@ final class TimerViewController: BaseViewController {
     view.addSubview(subBackgroundView)
     view.addSubview(eggButtonStackView)
     
-    view.layer.addSublayer(clockLayer)
-    view.addSubview(timeLabel)
+    subBackgroundView.layer.addSublayer(clockLayer)
+    subBackgroundView.addSubview(timeLabel)
     
   }
   
