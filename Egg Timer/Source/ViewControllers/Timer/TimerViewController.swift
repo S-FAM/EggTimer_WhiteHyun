@@ -332,6 +332,7 @@ final class TimerViewController: BaseViewController {
     }
     
     eggTimeManager.setTimer(to: eggTimeManager.timeLeft - timeGoesBy)
+    eggTimeManager.startTimer()
     
     UNUserNotificationCenter
       .current()
