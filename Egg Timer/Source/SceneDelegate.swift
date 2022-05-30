@@ -29,7 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     
     // view controller instance 가져옴
-    let vc = ViewController()
+    let vc = TimerViewController()
     
     // navigation controller 설정
     let navVC = UINavigationController(rootViewController: vc)
@@ -78,7 +78,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       object: nil,
       userInfo: ["interval": interval]
     )
-    
   }
   
   func sceneDidEnterBackground(_ scene: UIScene) {

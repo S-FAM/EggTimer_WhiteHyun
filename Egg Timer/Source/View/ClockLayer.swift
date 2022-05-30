@@ -90,7 +90,6 @@ final class ClockLayer: CALayer {
     $0.toValue = 2 * CGFloat.pi
     $0.isRemovedOnCompletion = false // 애니메이션 초기화 안되게 함
     $0.fillMode = .forwards // 애니메이션이 끝난 결과를 그대로 유지
-    
   }
   
   private let diameter: Double
@@ -108,10 +107,6 @@ final class ClockLayer: CALayer {
     setupStyles()
   }
   
-  override init(layer: Any) {
-    self.diameter = 0
-    super.init(layer: layer)
-  }
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -167,14 +162,6 @@ final class ClockLayer: CALayer {
     handsLayer.path = linePath.cgPath
     
   }
-  
-  
-  /// 시계의 위치를 세팅합니다.
-  /// - Parameter center: 시계의 중심점
-  func configureClocks(_ center: CGPoint) {
-    frame = CGRect(x: center.x, y: center.y, width: 0, height: 0)
-  }
-  
   
   /// 아날로그 시계 UI를 보여줍니다.
   func displayAnalogClock() {
