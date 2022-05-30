@@ -29,7 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     
     // view controller instance 가져옴
-    let vc = ViewController()
+    let vc = TimerViewController()
     
     // navigation controller 설정
     let navVC = UINavigationController(rootViewController: vc)
@@ -65,12 +65,27 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   func sceneWillEnterForeground(_ scene: UIScene) {
     // Called as the scene transitions from the background to the foreground.
     // Use this method to undo the changes made on entering the background.
+    guard let didEnterBackgroundTime = UserDefaults.standard.object(
+      forKey: UserDefaults.Keys.didEnterBackgroundDate
+    ) as? Date
+    else {
+      return
+    }
+    let interval = Date().timeIntervalSince(didEnterBackgroundTime)
+    
+    NotificationCenter.default.post(
+      name: .willEnterForeground,
+      object: nil,
+      userInfo: ["interval": interval]
+    )
   }
   
   func sceneDidEnterBackground(_ scene: UIScene) {
     // Called as the scene transitions from the foreground to the background.
     // Use this method to save data, release shared resources, and store enough scene-specific state information
     // to restore the scene back to its current state.
+    UserDefaults.standard.set(Date(), forKey: UserDefaults.Keys.didEnterBackgroundDate)
+    NotificationCenter.default.post(name: .didEnterBackground, object: nil)
   }
   
   

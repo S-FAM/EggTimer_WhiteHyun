@@ -16,7 +16,7 @@ class SettingTableViewCell: UITableViewCell {
   }
   
   let settingSwitch = UISwitch().then {
-    $0.setOn(UserDefaults.standard.bool(forKey: SettingValue.switchClockKey), animated: false)
+    $0.setOn(UserDefaults.standard.bool(forKey: UserDefaults.Keys.switchClock), animated: false)
   }
   
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -31,7 +31,7 @@ class SettingTableViewCell: UITableViewCell {
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-    
+  
   func setupLayout() {
     contentView.addSubview(label)
     contentView.addSubview(settingSwitch)
@@ -58,6 +58,6 @@ class SettingTableViewCell: UITableViewCell {
   @objc func switchDidTaps(_ sender: UISwitch) {
     
     // 설정 값을 UserDefaults에 저장
-    UserDefaults.standard.set(sender.isOn, forKey: SettingValue.switchClockKey)
+    UserDefaults.standard.set(sender.isOn, forKey: UserDefaults.Keys.switchClock)
   }
 }

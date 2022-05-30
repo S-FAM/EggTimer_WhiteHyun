@@ -6,11 +6,12 @@
 //
 
 import UIKit
+import UserNotifications
 
 import SnapKit
 import Then
 
-final class ViewController: BaseViewController {
+final class TimerViewController: BaseViewController {
   
   private enum Metrics {
     
@@ -20,15 +21,41 @@ final class ViewController: BaseViewController {
     
   }
   
-  private let eggTimes = ["Soft": 4.0, "Medium": 7.0, "Hard": 12.0]
+  private var eggTimeManager = EggTimeManager()
   
-  var timer = Timer() // 달걀 스케쥴 타이머
-  var secondLeft = 0.0 // 타이머 지난 시간
-  var isClockAnalog: Bool?
+  var isAnalogClock: Bool?
   
   //MARK: - UI Property Part
   
+  /// 시계 UI를 형성하는 layer
   lazy var clockLayer = ClockLayer(diameter: view.frame.height / 2.789 / 2)
+  
+  // MARK: UIView
+  
+  let subBackgroundView = UIView().then {
+    $0.backgroundColor = Color.appSubBackgroundColor
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMinYCorner]
+  }
+  
+  let softViewContainer = UIView(frame: .zero)
+  
+  let mediumViewContainer = UIView(frame: .zero)
+  
+  let hardViewContainer = UIView(frame: .zero)
+  
+  // MARK: UIStackView
+  
+  let eggButtonStackView = UIStackView().then {
+    $0.axis = .horizontal
+    $0.alignment = .fill
+    $0.distribution = .fillEqually
+    $0.spacing = 25
+    $0.layer.cornerRadius = Metrics.cornerRadius
+    $0.backgroundColor = Color.appPointColor.withAlphaComponent(0.5)
+  }
+  
+  // MARK: UILabel
   
   let timeLabel = UILabel().then {
     $0.textAlignment = .center
@@ -43,16 +70,7 @@ final class ViewController: BaseViewController {
     $0.sizeToFit()
   }
   
-  let settingsButton = UIButton(type: .system).then {
-    $0.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
-    $0.tintColor = Color.appPointColor
-  }
-  
-  let subBackgroundView = UIView().then {
-    $0.backgroundColor = Color.appSubBackgroundColor
-    $0.layer.cornerRadius = Metrics.cornerRadius
-    $0.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMinYCorner]
-  }
+  // MARK: UIImageView
   
   let softEggImageView = UIImageView().then {
     $0.image = UIImage(named: "soft")
@@ -69,11 +87,20 @@ final class ViewController: BaseViewController {
     $0.contentMode = .scaleAspectFit
   }
   
+  // MARK: UIButton
+  
+  lazy var settingsButton = UIButton(type: .system).then {
+    $0.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
+    $0.tintColor = Color.appPointColor
+    $0.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+  }
+  
   lazy var softButton = UIButton(type: .system).then {
     $0.setTitle("Soft", for: .normal)
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   lazy var mediumButton = UIButton(type: .system).then {
@@ -81,6 +108,7 @@ final class ViewController: BaseViewController {
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   lazy var hardButton = UIButton(type: .system).then {
@@ -88,19 +116,7 @@ final class ViewController: BaseViewController {
     $0.titleLabel?.font = UIFont.systemFont(ofSize: self.view.frame.height > Metrics.thresholdHeight ? 20 : 16, weight: .regular)
     $0.contentVerticalAlignment = .bottom
     $0.tintColor = UIColor.black
-  }
-  
-  let softViewContainer = UIView(frame: .zero)
-  let mediumViewContainer = UIView(frame: .zero)
-  let hardViewContainer = UIView(frame: .zero)
-  
-  let eggButtonStackView = UIStackView().then {
-    $0.axis = .horizontal
-    $0.alignment = .fill
-    $0.distribution = .fillEqually
-    $0.spacing = 25
-    $0.layer.cornerRadius = Metrics.cornerRadius
-    $0.backgroundColor = Color.appPointColor.withAlphaComponent(0.5)
+    $0.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
   }
   
   //MARK: - Life Cycle Part
@@ -108,17 +124,39 @@ final class ViewController: BaseViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     
-    softButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    mediumButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
-    hardButton.addTarget(self, action: #selector(eggButtonDidTaps(_:)), for: .touchUpInside)
     
-    settingsButton.addTarget(self, action: #selector(settingsButtonDidTaps(_:)), for: .touchUpInside)
+    // delegate 설정
+    eggTimeManager.delegate = self
+    
+    // 작업한 레이아웃을 바로 적용
+    view.layoutIfNeeded()
+    
+    clockLayer.frame = CGRect(
+      x: timeLabel.center.x,
+      y: timeLabel.center.y,
+      width: 0,
+      height: 0
+    )
+    
+    // MARK: Notification Observer
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(willEnterForeground(_:)),
+      name: .willEnterForeground,
+      object: nil
+    )
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(didEnterBackground(_:)),
+      name: .didEnterBackground,
+      object: nil
+    )
   }
-  
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    clockLayer.configureClocks(timeLabel.center)
-    setupTimerClocks()
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    setupClock()
   }
   
   override func setupLayout() {
@@ -135,7 +173,6 @@ final class ViewController: BaseViewController {
     
     [softViewContainer, mediumViewContainer, hardViewContainer].forEach {
       eggButtonStackView.addArrangedSubview($0)
-      
     }
     
     view.addSubview(titleLabel)
@@ -143,8 +180,8 @@ final class ViewController: BaseViewController {
     view.addSubview(subBackgroundView)
     view.addSubview(eggButtonStackView)
     
-    view.layer.addSublayer(clockLayer)
-    view.addSubview(timeLabel)
+    subBackgroundView.layer.addSublayer(clockLayer)
+    subBackgroundView.addSubview(timeLabel)
     
   }
   
@@ -230,14 +267,14 @@ final class ViewController: BaseViewController {
   
   //MARK: - Function Part
   
-  func setupTimerClocks() {
+  func setupClock() {
     
-    let clockVersion = UserDefaults.standard.bool(forKey: SettingValue.switchClockKey)
+    let clockVersion = UserDefaults.standard.bool(forKey: UserDefaults.Keys.switchClock)
     
     
     // 처음 앱을 실행 한 게 아니면서 설정으로 변경한 시계UI와 지금의 UI가 같으면
     // 불필요한 연산 없이 즉시 리턴
-    if isClockAnalog != nil, isClockAnalog! == clockVersion { return }
+    if isAnalogClock != nil, isAnalogClock! == clockVersion { return }
     
     // 시계 UI 업데이트
     if clockVersion {
@@ -248,47 +285,7 @@ final class ViewController: BaseViewController {
       timeLabel.isHidden = false
     }
     
-    isClockAnalog = clockVersion
-    
-  }
-  
-  func setTimer(seconds time: Double) {
-    
-    // 값 초기화
-    timer.invalidate()
-    secondLeft = time
-    
-    // 타이머 애니메이션 실행
-    clockLayer.animate(duration: time)
-    
-    
-    // `분:초`로 보여지도록 하기 위해 formatter를 사용
-    let dateFormatter = DateFormatter().then {
-      $0.dateFormat = "mm:ss"
-    }
-    
-    self.timeLabel.text = dateFormatter.string(
-      from: Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
-    )
-    
-    
-    // 타이머 설정
-    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-      if self.secondLeft > 0 {
-        
-        self.secondLeft -= 1
-        let leftTime = Date(timeIntervalSince1970: TimeInterval(self.secondLeft))
-        self.timeLabel.text = dateFormatter.string(from: leftTime)
-        
-      } else {
-        
-        $0.invalidate()
-        self.timeLabel.text = "Done!"
-        
-      }
-      
-    }
-    
+    isAnalogClock = clockVersion
     
   }
   
@@ -296,8 +293,8 @@ final class ViewController: BaseViewController {
   
   @objc func eggButtonDidTaps(_ sender: UIButton) {
     
-    guard let hardness = sender.currentTitle,
-          let minute = eggTimes[hardness] else {
+    guard let hardness = sender.currentTitle
+    else {
       
       let alert = UIAlertController(
         title: "오류!",
@@ -310,11 +307,81 @@ final class ViewController: BaseViewController {
       return
     }
     
-    setTimer(seconds: minute * 60.0)
+    // 타이머 설정
+    eggTimeManager.setTimer(to: hardness)
+    
+    // 타이머 시작
+    eggTimeManager.startTimer()
+    
+    // 타이머 시간만큼 애니메이션 실행
+    clockLayer.animate(duration: eggTimeManager.timeLeft)
   }
   
   
   @objc func settingsButtonDidTaps(_ sender: UIButton) {
     navigationController?.pushViewController(SettingsViewController(), animated: true)
+  }
+  
+  // MARK: - Observer Part
+  
+  @objc func willEnterForeground(_ notification: Notification) {
+    guard let timeGoesBy = notification.userInfo?["interval"] as? Double,
+          eggTimeManager.timeLeft > 0
+    else {
+      return
+    }
+    
+    eggTimeManager.setTimer(to: eggTimeManager.timeLeft - timeGoesBy)
+    eggTimeManager.startTimer()
+    
+    UNUserNotificationCenter
+      .current()
+      .removePendingNotificationRequests(withIdentifiers: [UserNotificationID.timerDone])
+  }
+  
+  
+  @objc func didEnterBackground(_ notification: Notification) {
+    
+    guard eggTimeManager.timeLeft > 0 else { return }
+    
+    
+    // 푸시알림 설정 유무를 가져옴
+    UNUserNotificationCenter.current().getNotificationSettings { [unowned self] settings in
+      
+      // 푸시 알림을 동의했다면
+      if settings.authorizationStatus == .authorized {
+        
+        // 1. 컨텐츠 정의
+        let content = UNMutableNotificationContent()
+        content.title = "알림"
+        content.subtitle = "끝났어요!"
+        content.body = "얼른 삶은 달걀을 꺼내보세요!!"
+        content.sound = .default
+        
+        // 2. 트리거 조건 정의
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: eggTimeManager.timeLeft, repeats: false)
+        
+        // 3. 요청 생성
+        let request = UNNotificationRequest(identifier: UserNotificationID.timerDone, content: content, trigger: trigger)
+        
+        // 4. NotificationCenter에 추가
+        UNUserNotificationCenter.current().add(request)
+        
+      }
+    }
+  }
+}
+
+// MARK: - EggTimeDelegate
+
+extension TimerViewController: EggTimeDelegate {
+  
+  func timerDidChangesPerTick(_ manager: EggTimeManager, timeString: String) {
+    timeLabel.text = timeString
+  }
+  
+  
+  func timerDone(_ manager: EggTimeManager) {
+    timeLabel.text = "Done!"
   }
 }
